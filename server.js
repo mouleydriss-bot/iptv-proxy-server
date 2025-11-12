@@ -9,39 +9,45 @@ app.use(cors());
 
 // Middleware du proxy pour /api
 const iptvProxy = createProxyMiddleware({
-  // La cible est déterminée dynamiquement par l'en-tête X-Target-Url
+  // La cible (host) est déterminée dynamiquement par l'en-tête X-Target-Url
   router: (req) => {
     const targetUrl = req.get('X-Target-Url'); // Lire l'URL cible de l'en-tête
     if (!targetUrl) {
-      // Si l'en-tête n'est pas fourni, renvoyer une erreur
-      // Cela sera géré par le onError ou pourra causer une erreur dans le proxy
-      throw new Error('Missing X-Target-Url header');
+      console.error('Erreur Proxy: En-tête X-Target-Url manquant');
+      // Pour forcer une erreur, on peut lever une exception ou retourner une URL invalide
+      // Ici, on suppose que l'application gère le cas où l'en-tête est absent
+      // Une meilleure gestion d'erreur pourrait être ajoutée via onError
+      return null; // ou une URL d'erreur
     }
-    // Extraire le protocole et le host
-    const parsedTarget = new URL(targetUrl);
-    return `${parsedTarget.protocol}//${parsedTarget.host}`;
-  },
-  // Réécrire le chemin pour enlever /api du début
-  pathRewrite: (path, req) => {
-    const targetUrl = req.get('X-Target-Url'); // Lire l'URL cible de l'en-tête
-    if (!targetUrl) {
-      // Si l'en-tête n'est pas fourni, ne rien réécrire (ou gérer l'erreur)
-      return path;
+    try {
+        // Extraire le protocole et le host
+        const parsedTarget = new URL(targetUrl);
+        const targetBase = `${parsedTarget.protocol}//${parsedTarget.host}`;
+        console.log(`Proxy redirige vers: ${targetBase}`); // Log pour le débogage
+        return targetBase;
+    } catch (e) {
+        console.error('Erreur Proxy: URL cible invalide dans X-Target-Url:', targetUrl, e);
+        return null; // ou une URL d'erreur
     }
-    // Extraire le chemin et les query params de l'URL cible
-    const parsedTarget = new URL(targetUrl);
-    return parsedTarget.pathname + parsedTarget.search;
   },
+  // Le chemin est automatiquement réécrit par http-proxy-middleware
+  // lorsqu'il est monté sur '/api'. Il enlève '/api' du début de la requête.
+  // Ex: Requête entrante /api/player_api.php -> proxy envoie /player_api.php
+  // Donc, on ne spécifie PAS de pathRewrite personnalisé qui écraserait cela.
+  // Le comportement par défaut est le bon.
+  // pathRewrite: (path, req) => path, // <-- Optionnel, mais explicite
   changeOrigin: true,
   onProxyReq: (proxyReq, req, res) => {
     // Conserver l'User-Agent original ou en définir un
     // proxyReq.setHeader('User-Agent', 'VLC/3.0.20 (Windows; x64_64)');
     // Laissez-le tel quel pour l'instant, ou adaptez selon besoin
+    console.log(`Proxy envoie requête à: ${proxyReq.path} sur ${proxyReq.host}`); // Log pour le débogage
   },
   // Gestion des erreurs de proxy
   onError: (err, req, res) => {
-    console.error('Proxy Error:', err);
-    res.status(500).send('Proxy Error');
+    console.error('Erreur Proxy:', err);
+    // Envoyer une réponse d'erreur au client
+    res.status(500).send('Erreur interne du proxy');
   }
 });
 
