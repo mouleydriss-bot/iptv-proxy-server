@@ -1,0 +1,90 @@
+# 🔒 Fichiers sensibles et secrets
+.env
+.env.*
+*.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.secrets
+*.pem
+*.key
+*.crt
+*.cert
+credentials.json
+config.json
+secrets.json
+
+# 🔒 Dépendances et build
+node_modules/
+dist/
+build/
+coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# 🔒 Runtime
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 🔒 IDE et éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+*.vscode
+.DS_Store
+Thumbs.db
+
+# 🔒 Système
+*.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 🔒 Tests
+*.test.js
+*.spec.js
+test/
+tests/
+__tests__/
+
+# 🔒 Documentation
+docs/
+*.md
+
+# 🔒 Docker
+docker-compose.override.yml
+docker-compose.*.yml
+
+# 🔒 Système de type
+*.tsbuildinfo
+*.d.ts
+
+# 🔒 Cache
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.cache/
+.tmp/
+.temp/
+
+# 🔒 Autres
+*.orig
+*.bak
+*.tmp
+*.temp
