@@ -14,9 +14,6 @@ const iptvProxy = createProxyMiddleware({
     const targetUrl = req.get('X-Target-Url'); // Lire l'URL cible de l'en-tête
     if (!targetUrl) {
       console.error('Erreur Proxy: En-tête X-Target-Url manquant');
-      // Pour forcer une erreur, on peut lever une exception ou retourner une URL invalide
-      // Ici, on suppose que l'application gère le cas où l'en-tête est absent
-      // Une meilleure gestion d'erreur pourrait être ajoutée via onError
       return null; // ou une URL d'erreur
     }
     try {
@@ -30,12 +27,17 @@ const iptvProxy = createProxyMiddleware({
         return null; // ou une URL d'erreur
     }
   },
-  // Le chemin est automatiquement réécrit par http-proxy-middleware
-  // lorsqu'il est monté sur '/api'. Il enlève '/api' du début de la requête.
-  // Ex: Requête entrante /api/player_api.php -> proxy envoie /player_api.php
-  // Donc, on ne spécifie PAS de pathRewrite personnalisé qui écraserait cela.
-  // Le comportement par défaut est le bon.
-  // pathRewrite: (path, req) => path, // <-- Optionnel, mais explicite
+  // Réécrire le chemin pour enlever /api du début
+  // http-proxy-middleware monté sur /api devrait normalement le faire automatiquement,
+  // mais spécifions-le explicitement pour corriger le problème.
+  pathRewrite: (path, req) => {
+    // 'path' est le chemin de la requête entrante (ex: /api/player_api.php?username=...&password=...&action=get_user_info)
+    // On veut envoyer /player_api.php?username=...&password=...&action=get_user_info au serveur cible.
+    // Donc, on remplace '/api' (en début de chaîne) par '' (rien).
+    const newPath = path.replace(/^\/api/, '');
+    console.log(`Proxy réécrit le chemin de "${path}" vers "${newPath}"`); // Log pour le débogage
+    return newPath;
+  },
   changeOrigin: true,
   onProxyReq: (proxyReq, req, res) => {
     // Conserver l'User-Agent original ou en définir un
